@@ -45,8 +45,8 @@
 
       const fetchData = async () => {
         setLoading(true);
-        const { data: scriptsData } = await supabase.from('scripts').select('*');
-        const { data: creatorsData } = await supabase.from('creators').select('*');
+        const { data: scriptsData } = await supabase.from('Scripts').select('*');
+        const { data: creatorsData } = await supabase.from('Creators').select('*');
         
         setScripts(scriptsData || []);
         setCreators(creatorsData || []);
@@ -55,7 +55,7 @@
 
       const updateScript = async (id, field, value) => {
         const { error } = await supabase
-          .from('scripts')
+          .from('Scripts')
           .update({ [field]: value })
           .eq('id', id);
         
@@ -66,7 +66,7 @@
 
       const updateCreator = async (id, field, value) => {
         const { error } = await supabase
-          .from('creators')
+          .from('Creators')
           .update({ [field]: value })
           .eq('id', id);
         
