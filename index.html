@@ -1,9 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Creative Pipeline - Marna Dashboard</title>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -78,6 +79,68 @@
         }
       };
 
+      const addScript = async () => {
+        const { data, error } = await supabase
+          .from('Scripts')
+          .insert([{
+            name: 'New Script',
+            status: 'Drafted',
+            lane: 'Problem→Solution',
+            winning_ads: 0,
+            date_created: new Date().toISOString().split('T')[0]
+          }])
+          .select();
+        
+        if (!error && data) {
+          setScripts([...scripts, data[0]]);
+        }
+      };
+
+      const deleteScript = async (id) => {
+        if (!confirm('Delete this script?')) return;
+        
+        const { error } = await supabase
+          .from('Scripts')
+          .delete()
+          .eq('id', id);
+        
+        if (!error) {
+          setScripts(scripts.filter(s => s.id !== id));
+        }
+      };
+
+      const addCreator = async () => {
+        const { data, error } = await supabase
+          .from('Creators')
+          .insert([{
+            name: 'New Creator',
+            status: 'Shortlisted',
+            rate: 100,
+            winning_ads: 0,
+            scripts_assigned: 0,
+            actual_spend: 0,
+            rating: 0
+          }])
+          .select();
+        
+        if (!error && data) {
+          setCreators([...creators, data[0]]);
+        }
+      };
+
+      const deleteCreator = async (id) => {
+        if (!confirm('Delete this creator?')) return;
+        
+        const { error } = await supabase
+          .from('Creators')
+          .delete()
+          .eq('id', id);
+        
+        if (!error) {
+          setCreators(creators.filter(c => c.id !== id));
+        }
+      };
+
       const totalCreatorSpend = creators.reduce((sum, c) => sum + (c.actual_spend || 0), 0);
       const liveScripts = scripts.filter(s => s.status === 'Live').length;
       const inProductionScripts = scripts.filter(s => s.status === 'In Production').length;
@@ -86,8 +149,8 @@
       // Calculate winning_ads dynamically from scripts
       const getCreatorWinningAds = (creatorName) => {
         return scripts
-          .filter(s => s.creator === creatorName)
-          .reduce((sum, s) => sum + (s.winning_ads || 0), 0);
+          .filter(s => s.creator === creatorName && s.winning_ads === 1)
+          .length;
       };
       
       // Add dynamic winning_ads to creators
@@ -98,7 +161,7 @@
       }));
       
       const topCreators = [...creatorsWithStats].sort((a, b) => b.winning_ads - a.winning_ads).slice(0, 5);
-      const winningHooks = scripts.filter(s => s.winning_ads > 0).sort((a, b) => b.winning_ads - a.winning_ads).slice(0, 5);
+      const winningHooks = scripts.filter(s => s.winning_ads === 1).sort((a, b) => (b.winning_ads || 0) - (a.winning_ads || 0)).slice(0, 5);
 
       const getMonthlyLaunches = () => {
         const launches = scripts.filter(s => s.date_launched);
@@ -202,16 +265,16 @@
       return (
         <div className="min-h-screen bg-white">
           <div className="border-b-2 border-[#214e65] bg-white sticky top-0 z-50 shadow-sm">
-            <div className="max-w-[1600px] mx-auto px-8 py-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-8 py-4 sm:py-5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
                   <div className="relative group">
                     {logo ? (
-                      <img src={logo} alt="Logo" className="h-10 w-auto object-contain cursor-pointer" onClick={() => document.getElementById('logo-upload').click()} />
+                      <img src={logo} alt="Logo" className="h-8 sm:h-10 w-auto object-contain cursor-pointer" onClick={() => document.getElementById('logo-upload').click()} />
                     ) : (
                       <div 
                         onClick={() => document.getElementById('logo-upload').click()}
-                        className="h-10 w-10 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-[#214e65] transition"
+                        className="h-8 w-8 sm:h-10 sm:w-10 border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-[#214e65] transition"
                       >
                         <span className="text-xs text-gray-400">Logo</span>
                       </div>
@@ -225,14 +288,14 @@
                     />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">Creative Pipeline</h1>
-                    <p className="text-sm text-gray-500">Content & Creator Management</p>
+                    <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Creative Pipeline</h1>
+                    <p className="text-xs sm:text-sm text-gray-500">Content & Creator Management</p>
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto">
                   <button
                     onClick={() => setActiveTab('overview')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+                    className={`px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
                       activeTab === 'overview'
                         ? 'bg-[#214e65] text-white shadow-md'
                         : 'bg-white text-gray-700 border-2 border-[#214e65] hover:bg-blue-50'
@@ -242,37 +305,37 @@
                   </button>
                   <button
                     onClick={() => setActiveTab('scripts')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+                    className={`px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
                       activeTab === 'scripts'
                         ? 'bg-[#214e65] text-white shadow-md'
                         : 'bg-white text-gray-700 border-2 border-[#214e65] hover:bg-blue-50'
                     }`}
                   >
-                    Scripts Pipeline
+                    Scripts
                   </button>
                   <button
                     onClick={() => setActiveTab('creators')}
-                    className={`px-5 py-2.5 rounded-lg font-medium transition-all ${
+                    className={`px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium transition-all text-sm whitespace-nowrap ${
                       activeTab === 'creators'
                         ? 'bg-[#214e65] text-white shadow-md'
                         : 'bg-white text-gray-700 border-2 border-[#214e65] hover:bg-blue-50'
                     }`}
                   >
-                    Creator Pipeline
+                    Creators
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="max-w-[1600px] mx-auto px-8 py-8">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
             {activeTab === 'overview' && (
               <div className="space-y-8">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-semibold text-gray-900">Performance Overview</h2>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Performance Overview</h2>
                   <button
                     onClick={() => setShowMonthlyView(!showMonthlyView)}
-                    className="px-4 py-2 bg-[#214e65] text-white rounded-lg font-medium hover:opacity-90 transition"
+                    className="px-3 sm:px-4 py-2 bg-[#214e65] text-white rounded-lg font-medium hover:opacity-90 transition text-sm"
                   >
                     {showMonthlyView ? 'Hide' : 'View'} Monthly Launches
                   </button>
@@ -322,7 +385,7 @@
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   <div 
                     onClick={() => setShowMonthlyScripts(!showMonthlyScripts)}
                     className="bg-white rounded-2xl p-5 border-2 border-[#214e65] shadow-sm cursor-pointer hover:shadow-lg transition-shadow"
@@ -434,7 +497,7 @@
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <div className="bg-white rounded-2xl p-6 border-2 border-[#214e65] shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Script Status Distribution</h3>
                     <div className="space-y-4">
@@ -490,8 +553,8 @@
                         </div>
                         <div className="flex items-center gap-6">
                           <div className="text-center">
-                            <div className="text-2xl font-bold text-[#214e65]">{script.winning_ads}</div>
-                            <div className="text-xs text-gray-500">wins</div>
+                            <div className="text-2xl font-bold text-[#214e65]">1</div>
+                            <div className="text-xs text-gray-500">win</div>
                           </div>
                           <div>
                             <span className={`px-4 py-2 rounded-full text-sm font-medium ${
@@ -512,16 +575,22 @@
 
             {activeTab === 'scripts' && (
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-semibold text-gray-900">Scripts Pipeline</h2>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Scripts Pipeline</h2>
+                  <button
+                    onClick={addScript}
+                    className="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#214e65] text-white rounded-lg font-medium hover:opacity-90 transition text-sm w-full sm:w-auto"
+                  >
+                    + New Script
+                  </button>
                 </div>
 
-                <div className="overflow-x-auto pb-4">
-                  <div className="flex gap-4 min-w-max">
+                <div className="overflow-x-auto pb-4 -mx-4 sm:mx-0 px-4 sm:px-0">
+                  <div className="flex gap-3 sm:gap-4 min-w-max">
                     {STATUS_COLUMNS.map(status => (
                       <div
                         key={status}
-                        className="w-80 flex-shrink-0"
+                        className="w-72 sm:w-80 flex-shrink-0"
                         onDrop={() => handleDrop(status)}
                         onDragOver={handleDragOver}
                       >
@@ -541,23 +610,32 @@
                                 key={script.id}
                                 draggable
                                 onDragStart={() => handleDragStart(script)}
-                                className="bg-white border-2 border-gray-200 rounded-xl p-4 cursor-move hover:shadow-2xl hover:border-[#214e65] hover:scale-105 transition-all duration-200"
+                                className="bg-white border-2 border-gray-200 rounded-xl p-3 sm:p-4 cursor-move hover:shadow-2xl hover:border-[#214e65] hover:scale-105 transition-all duration-200 relative touch-manipulation"
                               >
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteScript(script.id);
+                                  }}
+                                  className="absolute top-2 right-2 w-7 h-7 sm:w-6 sm:h-6 bg-red-500 text-white rounded-full text-sm font-bold hover:bg-red-600 transition flex items-center justify-center"
+                                >
+                                  ×
+                                </button>
                                 <div className="flex items-start justify-between mb-3">
                                   <div className="font-semibold text-gray-900 flex-1">{script.name}</div>
                                   <div className="ml-2">
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        updateScript(script.id, 'winning_ads', script.winning_ads > 0 ? 0 : 1);
+                                        updateScript(script.id, 'winning_ads', script.winning_ads === 1 ? 0 : 1);
                                       }}
                                       className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                                        script.winning_ads > 0
+                                        script.winning_ads === 1
                                           ? 'bg-emerald-500 text-white border-2 border-emerald-600'
                                           : 'bg-gray-200 text-gray-600 border-2 border-gray-300'
                                       }`}
                                     >
-                                      {script.winning_ads > 0 ? '✓ Winning' : '✗ Not Winning'}
+                                      {script.winning_ads === 1 ? '✓ Winning' : '✗ Not Winning'}
                                     </button>
                                   </div>
                                 </div>
@@ -669,13 +747,25 @@
 
             {activeTab === 'creators' && (
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-semibold text-gray-900">Creator Pipeline</h2>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Creator Pipeline</h2>
+                  <button
+                    onClick={addCreator}
+                    className="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#214e65] text-white rounded-lg font-medium hover:opacity-90 transition text-sm w-full sm:w-auto"
+                  >
+                    + New Creator
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {creatorsWithStats.map(creator => (
-                    <div key={creator.id} className="bg-white rounded-2xl p-6 border-2 border-[#214e65] shadow-sm hover:shadow-2xl hover:scale-105 transition-all duration-200">
+                    <div key={creator.id} className="bg-white rounded-2xl p-6 border-2 border-[#214e65] shadow-sm hover:shadow-2xl hover:scale-105 transition-all duration-200 relative">
+                      <button
+                        onClick={() => deleteCreator(creator.id)}
+                        className="absolute top-4 right-4 w-7 h-7 bg-red-500 text-white rounded-full text-sm font-bold hover:bg-red-600 transition"
+                      >
+                        ×
+                      </button>
                       <div className="flex flex-col items-center mb-6">
                         <div className="relative group mb-4">
                           <div className="w-24 h-24 rounded-full border-4 border-[#214e65] overflow-hidden bg-gray-100 flex items-center justify-center">
