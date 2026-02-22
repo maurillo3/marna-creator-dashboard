@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,15 +9,15 @@
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect } = React;
-    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = Recharts;
+    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = window.Recharts;
 
     // Supabase configuration
     const SUPABASE_URL = 'https://drugmxxnwfwvtnjzrlnk.supabase.co';
@@ -45,8 +46,12 @@
 
       const fetchData = async () => {
         setLoading(true);
-        const { data: scriptsData } = await supabase.from('Scripts').select('*');
-        const { data: creatorsData } = await supabase.from('Creators').select('*');
+        console.log('Fetching data from Supabase...');
+        const { data: scriptsData, error: scriptsError } = await supabase.from('Scripts').select('*');
+        const { data: creatorsData, error: creatorsError } = await supabase.from('Creators').select('*');
+        
+        console.log('Scripts:', scriptsData, 'Error:', scriptsError);
+        console.log('Creators:', creatorsData, 'Error:', creatorsError);
         
         setScripts(scriptsData || []);
         setCreators(creatorsData || []);
