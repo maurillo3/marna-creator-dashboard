@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,14 +39,46 @@
       const [loading, setLoading] = useState(true);
       const [draggedCreator, setDraggedCreator] = useState(null);
       const [creatorOrder, setCreatorOrder] = useState([]);
+      const [syncStatus, setSyncStatus] = useState('connected');
 
       // Fetch data from Supabase
       useEffect(() => {
         fetchData();
+        
+        // Subscribe to real-time changes
+        const scriptsChannel = supabase
+          .channel('scripts-changes')
+          .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'Scripts' 
+          }, () => {
+            console.log('Scripts updated, refreshing...');
+            fetchData();
+          })
+          .subscribe();
+
+        const creatorsChannel = supabase
+          .channel('creators-changes')
+          .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'Creators' 
+          }, () => {
+            console.log('Creators updated, refreshing...');
+            fetchData();
+          })
+          .subscribe();
+
+        // Cleanup subscriptions on unmount
+        return () => {
+          supabase.removeChannel(scriptsChannel);
+          supabase.removeChannel(creatorsChannel);
+        };
       }, []);
 
       const fetchData = async () => {
-        setLoading(true);
+        setSyncStatus('syncing');
         console.log('Fetching data from Supabase...');
         const { data: scriptsData, error: scriptsError } = await supabase.from('Scripts').select('*');
         const { data: creatorsData, error: creatorsError } = await supabase.from('Creators').select('*');
@@ -57,8 +88,11 @@
         
         setScripts(scriptsData || []);
         setCreators(creatorsData || []);
-        setCreatorOrder((creatorsData || []).map(c => c.id));
+        if (creatorOrder.length === 0) {
+          setCreatorOrder((creatorsData || []).map(c => c.id));
+        }
         setLoading(false);
+        setSyncStatus('connected');
       };
 
       const updateScript = async (id, field, value) => {
@@ -318,7 +352,13 @@
                   </div>
                   <div>
                     <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Creative Pipeline</h1>
-                    <p className="text-xs sm:text-sm text-gray-500">Content & Creator Management</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs sm:text-sm text-gray-500">Content & Creator Management</p>
+                      <div className="flex items-center gap-1">
+                        <div className={`w-2 h-2 rounded-full ${syncStatus === 'syncing' ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+                        <span className="text-xs text-gray-400">Live</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2 sm:gap-3 w-full sm:w-auto overflow-x-auto">
