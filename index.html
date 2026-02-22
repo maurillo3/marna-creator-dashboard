@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,7 +83,21 @@
       const inProductionScripts = scripts.filter(s => s.status === 'In Production').length;
       const draftedScripts = scripts.filter(s => s.status === 'Drafted').length;
       
-      const topCreators = [...creators].sort((a, b) => b.winning_ads - a.winning_ads).slice(0, 5);
+      // Calculate winning_ads dynamically from scripts
+      const getCreatorWinningAds = (creatorName) => {
+        return scripts
+          .filter(s => s.creator === creatorName)
+          .reduce((sum, s) => sum + (s.winning_ads || 0), 0);
+      };
+      
+      // Add dynamic winning_ads to creators
+      const creatorsWithStats = creators.map(c => ({
+        ...c,
+        winning_ads: getCreatorWinningAds(c.name),
+        scripts_assigned: scripts.filter(s => s.creator === c.name).length
+      }));
+      
+      const topCreators = [...creatorsWithStats].sort((a, b) => b.winning_ads - a.winning_ads).slice(0, 5);
       const winningHooks = scripts.filter(s => s.winning_ads > 0).sort((a, b) => b.winning_ads - a.winning_ads).slice(0, 5);
 
       const getMonthlyLaunches = () => {
@@ -659,7 +674,7 @@
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-                  {creators.map(creator => (
+                  {creatorsWithStats.map(creator => (
                     <div key={creator.id} className="bg-white rounded-2xl p-6 border-2 border-[#214e65] shadow-sm hover:shadow-2xl hover:scale-105 transition-all duration-200">
                       <div className="flex flex-col items-center mb-6">
                         <div className="relative group mb-4">
