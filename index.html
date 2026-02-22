@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -98,11 +99,11 @@
       const updateScript = async (id, field, value) => {
         const { error } = await supabase
           .from('Scripts')
-          .update({ [field]: value })
+          .update({ [field]: value === '' ? null : value })
           .eq('id', id);
         
         if (!error) {
-          setScripts(scripts.map(s => s.id === id ? { ...s, [field]: value } : s));
+          setScripts(scripts.map(s => s.id === id ? { ...s, [field]: value === '' ? null : value } : s));
         }
       };
 
@@ -752,7 +753,10 @@
                                       <input
                                         type="date"
                                         value={script.date_created || ''}
-                                        onChange={(e) => updateScript(script.id, 'date_created', e.target.value)}
+                                        onChange={(e) => {
+                                          // Allow clearing the date
+                                          updateScript(script.id, 'date_created', e.target.value || null);
+                                        }}
                                         onClick={(e) => e.stopPropagation()}
                                         className="text-xs border-2 border-gray-300 rounded-lg px-2 py-1.5 w-full font-medium focus:border-[#214e65] focus:outline-none"
                                       />
@@ -762,7 +766,7 @@
                                     <div className="mt-2 px-2 py-1 bg-white rounded-md border border-gray-300">
                                       <span className="text-xs font-bold text-[#214e65]">
                                         📅 {
-                                          script.date_created 
+                                          script.date_created && script.date_created.trim() !== ''
                                             ? Math.floor((new Date(script.date_created) - new Date(script.date_launched)) / (1000 * 60 * 60 * 24)) + ' days live'
                                             : Math.floor((new Date() - new Date(script.date_launched)) / (1000 * 60 * 60 * 24)) + ' days and counting...'
                                         }
