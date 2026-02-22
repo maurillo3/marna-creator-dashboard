@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -645,12 +646,12 @@
                                     e.stopPropagation();
                                     deleteScript(script.id);
                                   }}
-                                  className="absolute top-2 left-2 w-5 h-5 text-gray-400 hover:text-red-500 transition text-lg font-light leading-none"
-                                  title="Delete script"
+                                  className="absolute top-1 right-1 w-4 h-4 text-gray-300 hover:text-gray-500 transition text-sm font-normal leading-none"
+                                  title="Delete"
                                 >
                                   ×
                                 </button>
-                                <div className="flex items-start justify-between mb-3 ml-6">
+                                <div className="flex items-start justify-between mb-3">
                                   <div className="font-semibold text-gray-900 flex-1">{script.name}</div>
                                   <div className="ml-2">
                                     <button
@@ -697,17 +698,7 @@
                                 <div className="mb-3 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border-2 border-gray-200">
                                   <div className="grid grid-cols-2 gap-2 mb-2">
                                     <div>
-                                      <label className="text-xs font-semibold text-gray-600 block mb-1">📅 Created</label>
-                                      <input
-                                        type="date"
-                                        value={script.date_created || ''}
-                                        onChange={(e) => updateScript(script.id, 'date_created', e.target.value)}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="text-xs border-2 border-gray-300 rounded-lg px-2 py-1.5 w-full font-medium focus:border-[#214e65] focus:outline-none"
-                                      />
-                                    </div>
-                                    <div>
-                                      <label className="text-xs font-semibold text-gray-600 block mb-1">🚀 Launched</label>
+                                      <label className="text-xs font-semibold text-gray-600 block mb-1">🚀 Went Live</label>
                                       <input
                                         type="date"
                                         value={script.date_launched || ''}
@@ -716,11 +707,25 @@
                                         className="text-xs border-2 border-gray-300 rounded-lg px-2 py-1.5 w-full font-medium focus:border-[#214e65] focus:outline-none"
                                       />
                                     </div>
+                                    <div>
+                                      <label className="text-xs font-semibold text-gray-600 block mb-1">🛑 Ended (opt)</label>
+                                      <input
+                                        type="date"
+                                        value={script.date_created || ''}
+                                        onChange={(e) => updateScript(script.id, 'date_created', e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="text-xs border-2 border-gray-300 rounded-lg px-2 py-1.5 w-full font-medium focus:border-[#214e65] focus:outline-none"
+                                      />
+                                    </div>
                                   </div>
-                                  {script.date_created && script.date_launched && (
+                                  {script.date_launched && (
                                     <div className="mt-2 px-2 py-1 bg-white rounded-md border border-gray-300">
                                       <span className="text-xs font-bold text-[#214e65]">
-                                        ⏱ {Math.floor((new Date(script.date_launched) - new Date(script.date_created)) / (1000 * 60 * 60 * 24))} days to launch
+                                        📅 {
+                                          script.date_created 
+                                            ? Math.floor((new Date(script.date_created) - new Date(script.date_launched)) / (1000 * 60 * 60 * 24)) + ' days live'
+                                            : Math.floor((new Date() - new Date(script.date_launched)) / (1000 * 60 * 60 * 24)) + ' days and counting...'
+                                        }
                                       </span>
                                     </div>
                                   )}
@@ -798,8 +803,8 @@
                     >
                       <button
                         onClick={() => deleteCreator(creator.id)}
-                        className="absolute top-2 left-2 w-5 h-5 text-gray-400 hover:text-red-500 transition text-lg font-light leading-none"
-                        title="Delete creator"
+                        className="absolute top-1 right-1 w-4 h-4 text-gray-300 hover:text-gray-500 transition text-sm font-normal leading-none"
+                        title="Delete"
                       >
                         ×
                       </button>
