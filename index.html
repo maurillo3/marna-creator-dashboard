@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,7 +23,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRydWdteHhud2Z3dnRuanpybG5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3NTczNDQsImV4cCI6MjA4NzMzMzM0NH0.eKIHW4fDsadxof05CZRQdq3ugLAzIl0euiiY1OGX2R4';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const STATUS_COLUMNS = ['Drafted', 'In Production', 'Live'];
+    const STATUS_COLUMNS = ['Drafted', 'In Production', 'Live', 'Paused'];
 
     function MarnaDashboard() {
       const [scripts, setScripts] = useState([]);
@@ -186,6 +185,7 @@
       const liveScripts = scripts.filter(s => s.status === 'Live').length;
       const inProductionScripts = scripts.filter(s => s.status === 'In Production').length;
       const draftedScripts = scripts.filter(s => s.status === 'Drafted').length;
+      const pausedScripts = scripts.filter(s => s.status === 'Paused').length;
       
       // Calculate winning_ads dynamically from scripts
       const getCreatorWinningAds = (creatorName) => {
@@ -472,7 +472,7 @@
                   </div>
                   <div className="bg-white rounded-2xl p-5 border-2 border-[#214e65] shadow-sm">
                     <div className="text-gray-500 text-sm font-medium mb-1">Script Status</div>
-                    <div className="flex items-center gap-4 mt-1">
+                    <div className="flex items-center gap-3 mt-1 flex-wrap">
                       <div>
                         <div className="text-sm text-gray-500">Drafted</div>
                         <div className="text-2xl font-semibold text-gray-600">{draftedScripts}</div>
@@ -486,6 +486,11 @@
                       <div>
                         <div className="text-sm text-gray-500">Live</div>
                         <div className="text-2xl font-semibold text-green-600">{liveScripts}</div>
+                      </div>
+                      <div className="w-px h-12 bg-gray-200"></div>
+                      <div>
+                        <div className="text-sm text-gray-500">Paused</div>
+                        <div className="text-2xl font-semibold text-red-600">{pausedScripts}</div>
                       </div>
                     </div>
                   </div>
