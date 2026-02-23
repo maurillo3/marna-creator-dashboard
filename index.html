@@ -698,7 +698,13 @@
                                   ×
                                 </button>
                                 <div className="flex items-start justify-between mb-3">
-                                  <div className="font-semibold text-gray-900 flex-1">{script.name}</div>
+                                  <input
+                                    type="text"
+                                    value={script.name}
+                                    onChange={(e) => updateScript(script.id, 'name', e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="font-semibold text-gray-900 flex-1 bg-transparent border-b-2 border-transparent hover:border-gray-300 focus:border-[#214e65] focus:outline-none px-1 py-0.5 mr-2"
+                                  />
                                   <div className="ml-2">
                                     <button
                                       onClick={(e) => {
